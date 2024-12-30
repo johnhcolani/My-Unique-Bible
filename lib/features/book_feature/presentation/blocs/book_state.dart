@@ -10,13 +10,27 @@ class BookInitial extends BookState {}
 
 class BookLoading extends BookState {}
 
-class BookLoaded extends BookState {
-  final List<Book> books;
+class SectionLoaded extends BookState {
+  final List<Book> oldTestamentEnglish;
+  final List<Book> newTestamentEnglish;
+  final List<Book> oldTestamentPersian;
+  final List<Book> newTestamentPersian;
 
-  BookLoaded(this.books);
+  SectionLoaded(
+      this.oldTestamentEnglish,
+      this.newTestamentEnglish,
+      this.oldTestamentPersian,
+      this.newTestamentPersian,
+      );
 
   @override
-  List<Object?> get props => [books];
+  List<Object?> get props => [
+    oldTestamentEnglish,
+    newTestamentEnglish,
+    oldTestamentPersian,
+    newTestamentPersian,
+
+  ];
 }
 
 class BookError extends BookState {

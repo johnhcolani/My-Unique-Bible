@@ -1,32 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entities/book.dart';
 import '../blocs/book_bloc.dart';
 import '../blocs/book_event.dart';
 import '../blocs/book_state.dart';
 
 class BookPage extends StatelessWidget {
-  final String bibleId;
+  final String section;
 
-  const BookPage({Key? key, required this.bibleId}) : super(key: key);
+  const BookPage({Key? key, required this.section}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Books')),
+      appBar: AppBar(
+        title: Text(section == 'oldTestament' ? 'Old Testament' : 'New Testament'),
+      ),
       body: BlocProvider(
-        create: (_) => BookBloc(getBooksUseCase: context.read())..add(LoadBooksEvent(bibleId)),
+        create: (_) => BookBloc(getBooksUseCase: context.read())..add(LoadBooksEvent('de4e12af7f28f599-01')),
         child: BlocBuilder<BookBloc, BookState>(
           builder: (context, state) {
             if (state is BookLoading) {
               return Center(child: CircularProgressIndicator());
-            } else if (state is BookLoaded) {
-              final books = state.books;
+            } else if (state is SectionLoaded) {
+              // Select the books to display based on the section
+
+              final englishBooks = section == 'oldTestament'
+                  ? state.oldTestamentEnglish
+                  : state.newTestamentEnglish;
+
+              final persianBooks = section == 'oldTestament'
+                  ? state.oldTestamentPersian
+                  : state.newTestamentPersian;
+            // Combine English and Persian books
+              final books = englishBooks.map((englishBook) {
+                final persianBook = persianBooks.firstWhere(
+                      (book) => book.id == englishBook.id,
+                  orElse: () => Book(id: englishBook.id, name: 'Not Found'),
+                );
+                return {'english': englishBook.name, 'persian': persianBook.name};
+              }).toList();
               return ListView.builder(
                 itemCount: books.length,
                 itemBuilder: (context, index) {
-                  final book = books[index];
+                  final bookPair = books[index];
                   return ListTile(
-                    title: Text(book.name),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                      children: [
+                        Expanded(child: Text(bookPair['english'] ?? 'Unknown')), // English book name
+                        Expanded(
+                          child: Text(
+                            bookPair['persian'] ?? 'ناشناخته',
+                            textAlign: TextAlign.right, // Right-align Persian text
+                            style: TextStyle(fontFamily: 'Vazir'), // Use a Persian-compatible font
+                          ),
+                        ),
+                      ],
+                    ),
                     onTap: () {
                       // Navigate to chapter page (to be implemented)
                     },
@@ -36,7 +68,7 @@ class BookPage extends StatelessWidget {
             } else if (state is BookError) {
               return Center(child: Text(state.message));
             }
-            return Center(child: Text('Select a section to view books.'));
+            return Center(child: Text('No books available.'));
           },
         ),
       ),

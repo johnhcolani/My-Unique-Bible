@@ -17,7 +17,7 @@ class MainPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BookPage(bibleId: 'de4e12af7f28f599-01'), // Example ID
+                    builder: (context) => BookPage( section: 'oldTestament',), // Example ID
                   ),
                 );
               },
@@ -29,7 +29,7 @@ class MainPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BookPage(bibleId: 'de4e12af7f28f599-01'), // Example ID
+                    builder: (context) => BookPage(section: 'newTestament'), // Example ID
                   ),
                 );
               },
