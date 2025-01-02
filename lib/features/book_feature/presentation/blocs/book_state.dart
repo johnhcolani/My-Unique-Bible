@@ -41,3 +41,11 @@ class BookError extends BookState {
   @override
   List<Object?> get props => [message];
 }
+class ChaptersLoaded extends BookState {
+  final List<String> chapters;
+
+  ChaptersLoaded(this.chapters);
+
+  @override
+  List<Object?> get props => [chapters];
+}

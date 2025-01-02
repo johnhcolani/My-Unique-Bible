@@ -11,6 +11,9 @@ class BookRepositoryImpl implements BookRepository{
     final bookModels = await remoteDataSource.fetchBooks(bibleId);
     return bookModels.map((bookModel) => Book(id: bookModel.id, name: bookModel.name)).toList();
   }
-
+  @override
+  Future<List<String>> fetchChapters(String bookId, String bibleId) async {
+    return await remoteDataSource.fetchChapters(bookId, bibleId); // Pass to data source
+  }
 
 }

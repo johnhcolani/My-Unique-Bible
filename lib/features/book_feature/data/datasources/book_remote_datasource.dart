@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 abstract class BookRemoteDataSource {
   Future<List<BookModel>> fetchBooks(String bibleId);
+  Future<List<String>> fetchChapters(String bookId, String bibleId); // Ensure this matches
 }
 
 class BookRemoteDataSourceImpl implements BookRemoteDataSource {
@@ -25,17 +26,21 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
     }
   }
   @override
-  Future<List<String>> fetchChapters(String bibleId, String bookId) async {
+  Future<List<String>> fetchChapters(String bookId, String bibleId) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/bibles/$bibleId/books/$bookId/chapters');
-    final response = await http.get(
+    final response = await client.get(
       url,
       headers: {'api-key': ApiConstants.apiKey},
     );
+
     if (response.statusCode == 200) {
-      final List chapters = json.decode(response.body)['data'];
-      return chapters.map((chapter) => chapter['id'] as String).toList();
+      final List<dynamic> chapters = json.decode(response.body)['data'];
+      return chapters.map<String>((dynamic chapter) {
+        final idParts = (chapter['id'] as String).split('.');
+        return idParts.length > 1 ? idParts[1] : chapter['id'];
+      }).toList();
     } else {
-      throw Exception('Failed to load chapters:${response.body}');
+      throw Exception('Failed to load chapters: ${response.body}');
     }
   }
 }

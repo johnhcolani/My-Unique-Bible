@@ -18,7 +18,7 @@ class BookPage extends StatelessWidget {
         title: Text(section == 'oldTestament' ? 'Old Testament' : 'New Testament'),
       ),
       body: BlocProvider(
-        create: (_) => BookBloc(getBooksUseCase: context.read())..add(LoadBooksEvent('de4e12af7f28f599-01')),
+        create: (_) => BookBloc(getBooksUseCase: context.read(), getChaptersUseCase: context.read())..add(LoadBooksEvent('de4e12af7f28f599-01')),
         child: BlocBuilder<BookBloc, BookState>(
           builder: (context, state) {
             if (state is BookLoading) {
