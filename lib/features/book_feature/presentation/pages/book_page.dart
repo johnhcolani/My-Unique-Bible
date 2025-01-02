@@ -4,6 +4,7 @@ import '../../domain/entities/book.dart';
 import '../blocs/book_bloc.dart';
 import '../blocs/book_event.dart';
 import '../blocs/book_state.dart';
+import 'chapter_page.dart';
 
 class BookPage extends StatelessWidget {
   final String section;
@@ -38,30 +39,50 @@ class BookPage extends StatelessWidget {
                       (book) => book.id == englishBook.id,
                   orElse: () => Book(id: englishBook.id, name: 'Not Found'),
                 );
-                return {'english': englishBook.name, 'persian': persianBook.name};
+                return {
+                  'id': englishBook.id, // Ensure 'id' is always non-null
+                  'english': englishBook.name,
+                  'persian': persianBook.name
+                };
               }).toList();
               return ListView.builder(
                 itemCount: books.length,
                 itemBuilder: (context, index) {
                   final bookPair = books[index];
-                  return ListTile(
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Card(
+                      color: Colors.grey.shade100,
+                      child: ListTile(
+                        title: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
-                      children: [
-                        Expanded(child: Text(bookPair['english'] ?? 'Unknown')), // English book name
-                        Expanded(
-                          child: Text(
-                            bookPair['persian'] ?? 'ناشناخته',
-                            textAlign: TextAlign.right, // Right-align Persian text
-                            style: TextStyle(fontFamily: 'Vazir'), // Use a Persian-compatible font
-                          ),
+                          children: [
+                            Expanded(child: Text(bookPair['english'] ?? 'Unknown')), // English book name
+                            Expanded(
+                              child: Text(
+                                bookPair['persian'] ?? 'ناشناخته',
+                                textAlign: TextAlign.right, // Right-align Persian text
+                                style: TextStyle(fontFamily: 'Vazir'), // Use a Persian-compatible font
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                        onTap: () {
+                          // Navigate to chapter page (to be implemented)
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChapterPage(
+                                bookId: bookPair['id']!,
+                                bookName: bookPair['english'] ?? 'Unknown',
+                                bibleId: 'de4e12af7f28f599-01', // Example Bible ID
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                    onTap: () {
-                      // Navigate to chapter page (to be implemented)
-                    },
                   );
                 },
               );

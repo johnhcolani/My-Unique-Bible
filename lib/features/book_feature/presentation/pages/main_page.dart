@@ -21,7 +21,7 @@ class MainPage extends StatelessWidget {
                   ),
                 );
               },
-              child: Text('Old Testament'),
+              child: Text('Old Testament',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
             ),
             SizedBox(height: 20),
             ElevatedButton(
@@ -33,7 +33,7 @@ class MainPage extends StatelessWidget {
                   ),
                 );
               },
-              child: Text('New Testament'),
+              child: Text('New Testament',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
             ),
           ],
         ),

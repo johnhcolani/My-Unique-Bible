@@ -11,6 +11,7 @@ abstract class BookRemoteDataSource {
 class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   final http.Client client;
   BookRemoteDataSourceImpl(this.client);
+
   @override
   Future<List<BookModel>> fetchBooks(String bibleId) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/bibles/$bibleId/books');
@@ -21,6 +22,20 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
       return books.map((book) => BookModel.fromJson(book)).toList();
     } else {
       throw Exception('Failed to load books:${response.body}');
+    }
+  }
+  @override
+  Future<List<String>> fetchChapters(String bibleId, String bookId) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/bibles/$bibleId/books/$bookId/chapters');
+    final response = await http.get(
+      url,
+      headers: {'api-key': ApiConstants.apiKey},
+    );
+    if (response.statusCode == 200) {
+      final List chapters = json.decode(response.body)['data'];
+      return chapters.map((chapter) => chapter['id'] as String).toList();
+    } else {
+      throw Exception('Failed to load chapters:${response.body}');
     }
   }
 }
