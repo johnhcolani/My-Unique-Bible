@@ -65,29 +65,36 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
 
     return number.split('').map((digit) => englishToPersianDigits[digit] ?? digit).join();
   }
-  @override
   Future<List<VerseModel>> fetchVerses(String chapterId, String bibleIdEnglish, String bibleIdPersian) async {
     final urlEnglish = Uri.parse('${ApiConstants.baseUrl}/bibles/$bibleIdEnglish/chapters/$chapterId/verses');
     final urlPersian = Uri.parse('${ApiConstants.baseUrl}/bibles/$bibleIdPersian/chapters/$chapterId/verses');
 
+    print('English URL: $urlEnglish');
+    print('Persian URL: $urlPersian');
+
     final responseEnglish = await client.get(urlEnglish, headers: {'api-key': ApiConstants.apiKey});
     final responsePersian = await client.get(urlPersian, headers: {'api-key': ApiConstants.apiKey});
 
-    print('English Response: ${responseEnglish.body}'); // Log English API response
-    print('Persian Response: ${responsePersian.body}'); // Log Persian API response
+    print('English Response: ${responseEnglish.body}');
+    print('Persian Response: ${responsePersian.body}');
 
     if (responseEnglish.statusCode == 200 && responsePersian.statusCode == 200) {
-      final List<dynamic> versesEnglish = json.decode(responseEnglish.body)['data'];
-      final List<dynamic> versesPersian = json.decode(responsePersian.body)['data'];
+      final versesEnglish = json.decode(responseEnglish.body)['data'] as List<dynamic>?;
+      final versesPersian = json.decode(responsePersian.body)['data'] as List<dynamic>?;
+
+      if (versesEnglish == null || versesPersian == null) {
+        throw Exception('Missing data in API response.');
+      }
 
       return List.generate(versesEnglish.length, (index) {
-        final englishText = versesEnglish[index]['text'] as String;
-        final persianText = index < versesPersian.length ? versesPersian[index]['text'] as String : '';
+        final englishText = versesEnglish[index]['text'] ?? '';
+        final persianText = index < versesPersian.length ? versesPersian[index]['text'] ?? '' : '';
         return VerseModel(englishText: englishText, persianText: persianText);
       });
     } else {
-      throw Exception('Failed to load verses.');
+      throw Exception('Failed to load verses. English: ${responseEnglish.body}, Persian: ${responsePersian.body}');
     }
   }
+
 
 }
