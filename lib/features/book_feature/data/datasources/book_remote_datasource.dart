@@ -4,9 +4,16 @@ import 'package:my_unique_bible/core/constants.dart';
 import 'package:my_unique_bible/features/book_feature/data/models/book_model.dart';
 import 'package:http/http.dart' as http;
 
+import '../../domain/entities/chapter.dart';
+import '../models/chapter_model.dart';
+import '../models/verse_model.dart';
+
 abstract class BookRemoteDataSource {
   Future<List<BookModel>> fetchBooks(String bibleId);
-  Future<List<String>> fetchChapters(String bookId, String bibleId); // Ensure this matches
+  Future<List<ChapterModel>> fetchChapters(String bookId, String bibleId);
+  Future<List<VerseModel>> fetchVerses(String chapterId, String bibleIdEnglish, String bibleIdPersian);
+
+
 }
 
 class BookRemoteDataSourceImpl implements BookRemoteDataSource {
@@ -26,7 +33,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
     }
   }
   @override
-  Future<List<String>> fetchChapters(String bookId, String bibleId) async {
+  Future<List<ChapterModel>> fetchChapters(String bookId, String bibleId) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/bibles/$bibleId/books/$bookId/chapters');
     final response = await client.get(
       url,
@@ -35,12 +42,52 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
 
     if (response.statusCode == 200) {
       final List<dynamic> chapters = json.decode(response.body)['data'];
-      return chapters.map<String>((dynamic chapter) {
-        final idParts = (chapter['id'] as String).split('.');
-        return idParts.length > 1 ? idParts[1] : chapter['id'];
+      return chapters.map<ChapterModel>((dynamic chapter) {
+        return ChapterModel.fromJson(chapter as Map<String, dynamic>);
       }).toList();
     } else {
       throw Exception('Failed to load chapters: ${response.body}');
     }
   }
+  String convertToPersianNumber(String number) {
+    const englishToPersianDigits = {
+      '0': '۰',
+      '1': '۱',
+      '2': '۲',
+      '3': '۳',
+      '4': '۴',
+      '5': '۵',
+      '6': '۶',
+      '7': '۷',
+      '8': '۸',
+      '9': '۹',
+    };
+
+    return number.split('').map((digit) => englishToPersianDigits[digit] ?? digit).join();
+  }
+  @override
+  Future<List<VerseModel>> fetchVerses(String chapterId, String bibleIdEnglish, String bibleIdPersian) async {
+    final urlEnglish = Uri.parse('${ApiConstants.baseUrl}/bibles/$bibleIdEnglish/chapters/$chapterId/verses');
+    final urlPersian = Uri.parse('${ApiConstants.baseUrl}/bibles/$bibleIdPersian/chapters/$chapterId/verses');
+
+    final responseEnglish = await client.get(urlEnglish, headers: {'api-key': ApiConstants.apiKey});
+    final responsePersian = await client.get(urlPersian, headers: {'api-key': ApiConstants.apiKey});
+
+    print('English Response: ${responseEnglish.body}'); // Log English API response
+    print('Persian Response: ${responsePersian.body}'); // Log Persian API response
+
+    if (responseEnglish.statusCode == 200 && responsePersian.statusCode == 200) {
+      final List<dynamic> versesEnglish = json.decode(responseEnglish.body)['data'];
+      final List<dynamic> versesPersian = json.decode(responsePersian.body)['data'];
+
+      return List.generate(versesEnglish.length, (index) {
+        final englishText = versesEnglish[index]['text'] as String;
+        final persianText = index < versesPersian.length ? versesPersian[index]['text'] as String : '';
+        return VerseModel(englishText: englishText, persianText: persianText);
+      });
+    } else {
+      throw Exception('Failed to load verses.');
+    }
+  }
+
 }

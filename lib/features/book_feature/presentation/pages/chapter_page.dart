@@ -1,13 +1,11 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:my_unique_bible/features/book_feature/presentation/pages/verse_page.dart';
 
+import '../../domain/entities/chapter.dart';
 import '../blocs/book_bloc.dart';
 import '../blocs/book_event.dart';
 import '../blocs/book_state.dart';
-
-
 
 class ChapterPage extends StatelessWidget {
   final String bookId;
@@ -28,59 +26,68 @@ class ChapterPage extends StatelessWidget {
         title: Text(bookName),
       ),
       body: BlocProvider(
-        create: (context) => BookBloc(getChaptersUseCase: context.read(), getBooksUseCase: context.read())
+        create: (context) => BookBloc(getChaptersUseCase: context.read(), getBooksUseCase: context.read(), getVersesUseCase: context.read())
           ..add(LoadChaptersEvent(bookId, bibleId)),
         child: BlocBuilder<BookBloc, BookState>(
           builder: (context, state) {
             if (state is BookLoading) {
               return Center(child: CircularProgressIndicator());
             } else if (state is ChaptersLoaded) {
-              final chapters = state.chapters;
+              final filteredChapters = state.chapters.where((chapter) => chapter.englishName.toLowerCase() != 'intro').toList();
 
-              return Column(
-                children: [
-                  // Intro button
-                  Center(
+              final chapters = [
+                Chapter(englishName: 'Intro', persianName: 'مقدمه'), // Add Intro as the first item
+                ...filteredChapters,
+              ];
+
+              return GridView.builder(
+                padding: const EdgeInsets.all(10),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4, // Number of items per row
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: chapters.length,
+                itemBuilder: (context, index) {
+                  final chapter = chapters[index];
+                  return GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>VersePage(
+                          chapterId: chapter.englishName,
+                          chapterName: chapter.persianName,
+                          bibleIdEnglish: 'de4e12af7f28f599-01',
+                          bibleIdPersian: '7cd100148df29c08-01')));
+                    },
                     child: Container(
-                      margin: const EdgeInsets.all(10),
-                      width: 100,
-                      height: 100,
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.grey[200],
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: Center(
-                        child: Text(
-                          'مقدمه',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            chapter.englishName, // English chapter name
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            chapter.persianName, // Persian chapter name
+                            style: TextStyle(fontSize: 18, fontFamily: 'Vazir'),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      itemCount: chapters.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.grey[200],
-                          ),
-                          child: Text(
-                            chapters[index],
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                  );
+                },
               );
             } else if (state is BookError) {
               return Center(child: Text(state.message));

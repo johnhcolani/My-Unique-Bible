@@ -22,3 +22,13 @@ class LoadChaptersEvent extends BookEvent {
   @override
   List<Object?> get props => [bookId, bibleId];
 }
+class LoadVersesEvent extends BookEvent {
+  final String chapterId;
+  final String bibleIdEnglish;
+  final String bibleIdPersian;
+
+  LoadVersesEvent(this.chapterId, this.bibleIdEnglish, this.bibleIdPersian);
+
+  @override
+  List<Object?> get props => [chapterId, bibleIdEnglish, bibleIdPersian];
+}

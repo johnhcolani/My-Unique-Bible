@@ -1,14 +1,20 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/usecase/get_books_usecase.dart';
 import '../../domain/usecase/get_chapter_usecase.dart';
+import '../../domain/usecase/get_verses_usecase.dart';
 import 'book_event.dart';
 import 'book_state.dart';
 
 class BookBloc extends Bloc<BookEvent, BookState> {
   final GetBooksUseCase getBooksUseCase;
   final GetChaptersUseCase getChaptersUseCase;
+  final GetVersesUseCase getVersesUseCase;
 
-  BookBloc({required this.getBooksUseCase,required this.getChaptersUseCase}) : super(BookInitial()) {
+  BookBloc({
+    required this.getBooksUseCase,
+    required this.getChaptersUseCase,
+   required this.getVersesUseCase
+  }) : super(BookInitial()) {
     on<LoadBooksEvent>((event, emit) async {
       emit(BookLoading());
       try {
@@ -56,6 +62,16 @@ class BookBloc extends Bloc<BookEvent, BookState> {
         emit(BookError('Failed to load chapters'));
       }
     });
+
+  on<LoadVersesEvent>((event, emit) async {
+  emit(BookLoading());
+  try {
+  final verses = await getVersesUseCase.execute(event.chapterId, event.bibleIdEnglish, event.bibleIdPersian);
+  emit(VersesLoaded(verses));
+  } catch (e) {
+  emit(BookError('Failed to load verses'));
   }
+  });
+}
 
 }

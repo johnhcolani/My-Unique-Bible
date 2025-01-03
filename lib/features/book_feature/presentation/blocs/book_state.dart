@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:my_unique_bible/features/book_feature/domain/entities/chapter.dart';
 import '../../domain/entities/book.dart';
+import '../../domain/entities/verse.dart';
 
 abstract class BookState extends Equatable {
   @override
@@ -42,10 +44,18 @@ class BookError extends BookState {
   List<Object?> get props => [message];
 }
 class ChaptersLoaded extends BookState {
-  final List<String> chapters;
+  final List<Chapter> chapters;
 
   ChaptersLoaded(this.chapters);
 
   @override
   List<Object?> get props => [chapters];
+}
+class VersesLoaded extends BookState {
+  final List<Verse> verses;
+
+  VersesLoaded(this.verses);
+
+  @override
+  List<Object?> get props => [verses];
 }
